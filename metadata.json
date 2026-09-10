@@ -1,0 +1,6 @@
+{
+  "name": "Serwis Ogłoszeniowy Laravel & Filament",
+  "description": "Kompletny portal ogłoszeniowy w architekturze Laravel, Tailwind CSS, Livewire z panelem Filament dla administratora i użytkownika, płatnościami Stripe i systemem powiadomień e-mail.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
