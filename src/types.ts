@@ -66,10 +66,12 @@ export interface EmailNotification {
   id: string;
   to: string;
   subject: string;
-  type: 'listing_activated' | 'payment_success' | 'new_message' | 'security_alert' | 'listing_expiring';
+  type: 'listing_activated' | 'payment_success' | 'new_message' | 'security_alert' | 'listing_expiring' | 'password_reset' | 'welcome_user' | 'password_changed';
   contentHtml: string;
   sentAt: string;
   read: boolean;
+  token?: string;
+  actionUrl?: string;
 }
 
 export interface SecuritySettings {
@@ -97,6 +99,8 @@ export interface UserAccount {
   id: string;
   name: string;
   email: string;
+  password?: string;
+  avatar?: string;
   role: Role;
   phone: string;
   twoFactorEnabled: boolean;

@@ -8,6 +8,7 @@ interface Props {
   emails: EmailNotification[];
   onMarkAsRead: (id: string) => void;
   onClearAll: () => void;
+  onUseResetToken?: (email: string, token: string) => void;
 }
 
 export const EmailSimulatorModal: React.FC<Props> = ({
@@ -16,6 +17,7 @@ export const EmailSimulatorModal: React.FC<Props> = ({
   emails,
   onMarkAsRead,
   onClearAll,
+  onUseResetToken,
 }) => {
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(
     emails.length > 0 ? emails[0].id : null
@@ -110,6 +112,9 @@ export const EmailSimulatorModal: React.FC<Props> = ({
                     {em.type === 'listing_activated' && 'Aktywacja ogłoszenia w serwisie'}
                     {em.type === 'new_message' && 'Wiadomość z formularza kontaktowego'}
                     {em.type === 'security_alert' && 'Powiadomienie bezpieczeństwa konta'}
+                    {em.type === 'password_reset' && 'Link i token resetowania hasła'}
+                    {em.type === 'welcome_user' && 'Potwierdzenie rejestracji w serwisie'}
+                    {em.type === 'password_changed' && 'Potwierdzenie zmiany hasła do konta'}
                   </div>
                 </button>
               ))
@@ -164,6 +169,29 @@ export const EmailSimulatorModal: React.FC<Props> = ({
                       className="email-rendered-content text-sm leading-relaxed"
                       dangerouslySetInnerHTML={{ __html: currentEmail.contentHtml }}
                     />
+
+                    {currentEmail.type === 'password_reset' && onUseResetToken && currentEmail.token && (
+                      <div className="mt-6 p-4 bg-indigo-50 border border-indigo-200 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <div>
+                          <div className="font-bold text-xs text-indigo-950">
+                            Wykryto token resetujący: <code className="font-mono text-indigo-700 bg-white px-2 py-0.5 rounded border border-indigo-200">{currentEmail.token}</code>
+                          </div>
+                          <div className="text-[11px] text-indigo-600">
+                            Możesz przejść bezpośrednio do formularza ustawiania nowego hasła.
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onClose();
+                            onUseResetToken(currentEmail.to, currentEmail.token!);
+                          }}
+                          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs shrink-0 cursor-pointer transition"
+                        >
+                          Ustaw nowe hasło teraz →
+                        </button>
+                      </div>
+                    )}
 
                     <div className="mt-8 pt-6 border-t border-slate-200 text-xs text-slate-500 text-center">
                       Wiadomość wygenerowana przez Laravel 13 Framework (Livewire & Filament) z integracją Stripe.

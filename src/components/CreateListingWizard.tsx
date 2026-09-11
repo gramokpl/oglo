@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { X, Check, Sparkles, ArrowRight, ArrowLeft, Upload, ShieldCheck, Image as ImageIcon, AlertCircle } from 'lucide-react';
-import { Listing, Category, StripeConfig } from '../types';
+import { Listing, Category, StripeConfig, UserAccount } from '../types';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   categories: Category[];
   stripeConfig: StripeConfig;
+  currentUser?: UserAccount | null;
   onSubmitListing: (newListing: Partial<Listing>, tier: 'standard' | 'promoted' | 'vip') => void;
 }
 
@@ -15,6 +16,7 @@ export const CreateListingWizard: React.FC<Props> = ({
   onClose,
   categories,
   stripeConfig,
+  currentUser,
   onSubmitListing,
 }) => {
   const [step, setStep] = useState<number>(1);
@@ -81,10 +83,11 @@ export const CreateListingWizard: React.FC<Props> = ({
       region,
       description: cleanDesc,
       images: uploadedImages.length > 0 ? uploadedImages : ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1000&q=80'],
-      userName: 'Jan Kowalski (Użytkownik)',
-      userPhone: '+48 691 882 119',
-      userEmail: 'jan.kowalski@example.com',
-      userVerified: true,
+      userId: currentUser ? currentUser.id : 'user-guest',
+      userName: currentUser ? currentUser.name : 'Użytkownik Gość',
+      userPhone: currentUser ? (currentUser.phone || '+48 600 000 000') : '+48 600 000 000',
+      userEmail: currentUser ? currentUser.email : 'anonim@example.com',
+      userVerified: currentUser ? currentUser.verified : false,
       status: selectedTier === 'standard' ? 'active' : (selectedTier === 'vip' ? 'vip' : 'promoted'),
       highlighted: selectedTier !== 'standard',
       vip: selectedTier === 'vip',

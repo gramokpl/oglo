@@ -9,9 +9,12 @@ import {
   Sparkles,
   CreditCard,
   User,
-  Shield
+  Shield,
+  LogIn,
+  UserPlus,
+  LogOut
 } from 'lucide-react';
-import { StripeConfig } from '../types';
+import { StripeConfig, UserAccount } from '../types';
 
 export type AppView = 'public' | 'user' | 'filament' | 'code';
 
@@ -22,6 +25,9 @@ interface Props {
   onOpenEmailModal: () => void;
   unreadEmailCount: number;
   stripeConfig: StripeConfig;
+  currentUser: UserAccount | null;
+  onOpenAuthModal: (mode?: 'login' | 'register') => void;
+  onLogout: () => void;
 }
 
 export const Navbar: React.FC<Props> = ({
@@ -31,15 +37,27 @@ export const Navbar: React.FC<Props> = ({
   onOpenEmailModal,
   unreadEmailCount,
   stripeConfig,
+  currentUser,
+  onOpenAuthModal,
+  onLogout,
 }) => {
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+  };
+
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-4">
+        <div className="flex items-center justify-between h-16 gap-3 sm:gap-4">
           {/* Brand Logo */}
           <div
             onClick={() => onViewChange('public')}
-            className="flex items-center gap-3 cursor-pointer select-none"
+            className="flex items-center gap-2.5 sm:gap-3 cursor-pointer select-none shrink-0"
           >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-700 to-violet-700 text-white flex items-center justify-center font-black text-lg shadow-md shadow-indigo-200">
               L13
@@ -63,7 +81,7 @@ export const Navbar: React.FC<Props> = ({
           <nav className="flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200/80 text-xs font-medium text-slate-600">
             <button
               onClick={() => onViewChange('public')}
-              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                 currentView === 'public'
                   ? 'bg-white text-slate-900 font-bold shadow-xs'
                   : 'hover:text-slate-900 hover:bg-slate-200/50'
@@ -74,8 +92,14 @@ export const Navbar: React.FC<Props> = ({
             </button>
 
             <button
-              onClick={() => onViewChange('user')}
-              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+              onClick={() => {
+                if (currentUser) {
+                  onViewChange('user');
+                } else {
+                  onOpenAuthModal('login');
+                }
+              }}
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                 currentView === 'user'
                   ? 'bg-white text-slate-900 font-bold shadow-xs'
                   : 'hover:text-slate-900 hover:bg-slate-200/50'
@@ -87,7 +111,7 @@ export const Navbar: React.FC<Props> = ({
 
             <button
               onClick={() => onViewChange('filament')}
-              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                 currentView === 'filament'
                   ? 'bg-amber-500 text-slate-950 font-black shadow-xs'
                   : 'hover:text-slate-900 hover:bg-slate-200/50'
@@ -100,7 +124,7 @@ export const Navbar: React.FC<Props> = ({
 
             <button
               onClick={() => onViewChange('code')}
-              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                 currentView === 'code'
                   ? 'bg-slate-900 text-white font-bold shadow-xs'
                   : 'hover:text-slate-900 hover:bg-slate-200/50'
@@ -113,7 +137,7 @@ export const Navbar: React.FC<Props> = ({
           </nav>
 
           {/* Right Action Bar */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             {/* Email Inbox Simulator Trigger */}
             <button
               onClick={onOpenEmailModal}
@@ -128,13 +152,62 @@ export const Navbar: React.FC<Props> = ({
               )}
             </button>
 
+            {/* Auth Buttons or User Profile Badge */}
+            {currentUser ? (
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => onViewChange('user')}
+                  className="flex items-center gap-2 p-1 pl-2 sm:pr-2.5 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-slate-50 transition cursor-pointer"
+                  title="Przejdź do profilu"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-600 text-white text-xs font-black flex items-center justify-center">
+                    {getInitials(currentUser.name)}
+                  </div>
+                  <div className="hidden lg:block text-left">
+                    <div className="text-xs font-bold text-slate-800 leading-tight">
+                      {currentUser.name.split(' ')[0]}
+                    </div>
+                    <div className="text-[10px] text-slate-400 capitalize leading-none">
+                      {currentUser.role === 'admin' ? 'Administrator' : currentUser.role === 'moderator' ? 'Moderator' : 'Użytkownik'}
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={onLogout}
+                  className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition border border-slate-200 cursor-pointer"
+                  title="Wyloguj się"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => onOpenAuthModal('login')}
+                  className="px-3 py-2 text-slate-700 hover:text-indigo-600 hover:bg-slate-100 font-bold text-xs rounded-xl transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Logowanie</span>
+                </button>
+
+                <button
+                  onClick={() => onOpenAuthModal('register')}
+                  className="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Rejestracja</span>
+                </button>
+              </div>
+            )}
+
             {/* Create Listing Button */}
             <button
               onClick={onOpenCreateWizard}
-              className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-200 flex items-center gap-1.5 transition cursor-pointer"
+              className="px-3 sm:px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-200 flex items-center gap-1.5 transition cursor-pointer shrink-0"
             >
               <Plus className="w-4 h-4" />
-              <span>Dodaj ogłoszenie</span>
+              <span className="hidden sm:inline">Dodaj ogłoszenie</span>
             </button>
           </div>
         </div>
