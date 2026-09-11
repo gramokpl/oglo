@@ -5,16 +5,22 @@ use Symfony\Component\Console\Input\ArgvInput;
 
 define('LARAVEL_START', microtime(true));
 
-// Register the Composer autoloader...
-if (file_exists(__DIR__.'/vendor/autoload.php')) {
-    require __DIR__.'/vendor/autoload.php';
+// 1. Sprawdzenie autoloader Composer
+if (!file_exists(__DIR__.'/vendor/autoload.php')) {
+    fwrite(STDERR, "\n[BŁĄD] Brak katalogu vendor/ lub pliku autoloader.\n");
+    fwrite(STDERR, "Uruchom najpierw w katalogu projektu: composer install\n\n");
+    exit(1);
 }
 
-// Bootstrap Laravel and handle the command...
-if (file_exists(__DIR__.'/bootstrap/app.php')) {
-    $app = require_once __DIR__.'/bootstrap/app.php';
-    $status = $app->handleCommand(new ArgvInput);
-    exit($status);
-} else {
-    echo "Uruchomienie wymaga zainstalowania zależności: composer install\n";
+require __DIR__.'/vendor/autoload.php';
+
+// 2. Sprawdzenie bootstrap/app.php
+if (!file_exists(__DIR__.'/bootstrap/app.php')) {
+    fwrite(STDERR, "\n[BŁĄD] Brak pliku bootstrap/app.php wymaganego do uruchomienia aplikacji Laravel.\n\n");
+    exit(1);
 }
+
+// Bootstrap Laravel i wykonanie komendy Artisan...
+$app = require_once __DIR__.'/bootstrap/app.php';
+$status = $app->handleCommand(new ArgvInput);
+exit($status);

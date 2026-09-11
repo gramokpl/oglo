@@ -9,6 +9,82 @@ export interface LaravelFile {
 
 export const LARAVEL_PROJECT_FILES: LaravelFile[] = [
   {
+    path: 'artisan',
+    language: 'php',
+    description: 'Konsola CLI Artisan frameworka Laravel',
+    content: `#!/usr/bin/env php
+<?php
+
+use Symfony\\Component\\Console\\Input\\ArgvInput;
+
+define('LARAVEL_START', microtime(true));
+
+// 1. Sprawdzenie autoloader Composer
+if (!file_exists(__DIR__.'/vendor/autoload.php')) {
+    fwrite(STDERR, "\\n[BŁĄD] Brak katalogu vendor/ lub pliku autoloader.\\n");
+    fwrite(STDERR, "Uruchom najpierw w katalogu projektu: composer install\\n\\n");
+    exit(1);
+}
+
+require __DIR__.'/vendor/autoload.php';
+
+// 2. Sprawdzenie bootstrap/app.php
+if (!file_exists(__DIR__.'/bootstrap/app.php')) {
+    fwrite(STDERR, "\\n[BŁĄD] Brak pliku bootstrap/app.php wymaganego do uruchomienia aplikacji Laravel.\\n\\n");
+    exit(1);
+}
+
+// Bootstrap Laravel i wykonanie komendy Artisan...
+$app = require_once __DIR__.'/bootstrap/app.php';
+$status = $app->handleCommand(new ArgvInput);
+exit($status);
+`
+  },
+  {
+    path: 'bootstrap/app.php',
+    language: 'php',
+    description: 'Główny plik startowy aplikacji Laravel 11/12/13 (routing, middleware, wyjątki)',
+    content: `<?php
+
+use Illuminate\\Foundation\\Application;
+use Illuminate\\Foundation\\Configuration\\Exceptions;
+use Illuminate\\Foundation\\Configuration\\Middleware;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware) {
+        $middleware->web(append: [
+            \\App\\Http\\Middleware\\ClassifiedSecurityShield::class,
+        ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'stripe/webhook',
+            'api/stripe/webhook',
+        ]);
+    })
+    ->withExceptions(function (Exceptions $exceptions) {
+        //
+    })->create();
+`
+  },
+  {
+    path: 'bootstrap/providers.php',
+    language: 'php',
+    description: 'Rejestracja providerów usług i panelu Filament Admin',
+    content: `<?php
+
+return [
+    App\\Providers\\AppServiceProvider::class,
+    App\\Providers\\Filament\\AdminPanelProvider::class,
+];
+`
+  },
+  {
     path: 'composer.json',
     language: 'json',
     description: 'Konfiguracja Composer z Laravel 11/12/13, Filament v3, Livewire v3 i pakietem Stripe',
